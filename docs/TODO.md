@@ -7,8 +7,8 @@
 
 ## Faz 2: Çekirdek Motor (Slot & Asset)
 - [x] `engine/slot_engine.py` geliştirilmesi (AABB, Slot yerleştirme)
-- [ ] `_registry/inventory.json` için basit kilit (lock) mekanizması
-- [ ] Tag tabanlı asset arama mantığının kurulması
+- [x] `_registry/inventory.json` için basit kilit (lock) mekanizması
+- [x] Tag tabanlı asset arama mantığının kurulması
 
 ## Faz 3: Mimari Atomlar ve Üretim
 - [x] `atoms/wall.py` geliştirilmesi

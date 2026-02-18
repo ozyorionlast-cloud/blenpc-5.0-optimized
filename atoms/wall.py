@@ -3,10 +3,10 @@ import hashlib
 import struct
 import bpy
 import bmesh
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 # Use absolute import from the project root
-from config import PHI, STORY_HEIGHT, WALL_THICKNESS_BASE
+from config import PHI, STORY_HEIGHT, WALL_THICKNESS_BASE, GRID_UNIT
 
 def make_rng(seed: int, subsystem: str):
     """Create a deterministic RNG for a specific subsystem."""
@@ -17,20 +17,28 @@ def make_rng(seed: int, subsystem: str):
 
 def golden_split(length: float, rng) -> float:
     """Split a length using the Golden Ratio with slight deterministic variation."""
-    base_split = length / PHI
-    variation = (rng.random() - 0.5) * 0.1 * base_split
-    return base_split + variation
+    # Standard split at 1/PHI or (1 - 1/PHI)
+    split_point = length / PHI
+    # Add +/- 2% variation based on RNG to avoid perfect repetition while maintaining aesthetics
+    variation = (rng.random() - 0.5) * 0.04 * length
+    final_split = split_point + variation
+    
+    # Snap to GRID_UNIT for modularity
+    return round(final_split / GRID_UNIT) * GRID_UNIT
 
 def check_manifold(bm) -> bool:
     """Verify if the mesh is a manifold using Euler's Formula: V - E + F = 2."""
     v = len(bm.verts)
     e = len(bm.edges)
     f = len(bm.faces)
+    # Simple check for closed genus-0 mesh
     return (v - e + f) == 2
 
-def create_basic_wall_mesh(name: str, length: float, height: float = STORY_HEIGHT, thickness: float = WALL_THICKNESS_BASE):
-    """Create a manifold wall mesh in Blender."""
-    # Clear existing data for a clean start in headless
+def create_engineered_wall(name: str, length: float, seed: int = 0):
+    """Create a wall with mathematically placed slots for openings."""
+    rng = make_rng(seed, "wall_slots")
+    
+    # Clear existing data
     bpy.ops.wm.read_factory_settings(use_empty=True)
     
     mesh = bpy.data.meshes.new(name)
@@ -38,37 +46,46 @@ def create_basic_wall_mesh(name: str, length: float, height: float = STORY_HEIGH
     bpy.context.scene.collection.objects.link(obj)
     
     bm = bmesh.new()
-    # Create a cube-based wall
     bmesh.ops.create_cube(bm, size=1.0)
+    
     # Scale to dimensions
+    thickness = WALL_THICKNESS_BASE
+    height = STORY_HEIGHT
+    
     bm.verts.ensure_lookup_table()
     for v in bm.verts:
         v.co.x *= length
         v.co.y *= thickness
         v.co.z *= height
-        # Move to sit on ground and start at origin
         v.co.z += height / 2
         v.co.x += length / 2
         
     if not check_manifold(bm):
         bm.free()
-        raise Exception(f"Mesh generation for {name} failed manifold check")
+        raise Exception(f"Manifold check failed for {name}")
         
     bm.to_mesh(mesh)
     bm.free()
     
-    # Blender 5.0.1 Asset Marking
-    obj.asset_mark()
+    # Define Slots (Mathematical placement)
+    # Use Golden Ratio to find a primary 'feature' spot (e.g., a window)
+    primary_slot_x = golden_split(length, rng)
     
-    # In Blender 5.0, the preview generation API might be more sensitive to context
-    try:
-        if hasattr(bpy.ops.ed, "lib_id_generate_preview"):
-            # Trying a simpler call without manual context override first
-            bpy.ops.ed.lib_id_generate_preview()
-    except Exception as e:
-        print(f"Warning: Could not generate preview: {e}")
-        
-    return obj
+    # Metadata for slots
+    slots = [
+        {
+            "id": "main_opening",
+            "type": "window_opening",
+            "pos": [primary_slot_x, 0, 1.2], # 1.2m height standard
+            "size": [1.0, 1.2]
+        }
+    ]
+    
+    # Mark as asset and store metadata
+    obj.asset_mark()
+    obj["slots_json"] = json.dumps(slots) if 'json' in globals() else str(slots)
+    
+    return obj, slots
 
 def calculate_roof_trig(width: float, pitch_deg: float = 35.0) -> Dict[str, float]:
     """Calculate roof geometry using trigonometry."""

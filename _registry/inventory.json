@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-02-18T12:12:01",
+  "last_updated": "2026-02-18T12:22:33",
   "assets": {
     "EngineeredWall_V1": {
       "name": "EngineeredWall_V1",
@@ -15,6 +15,64 @@
         "depth": 0.2
       },
       "blend_file": "_library/EngineeredWall_V1.blend"
+    },
+    "MathWall_S123": {
+      "name": "MathWall_S123",
+      "tags": [
+        "arch_wall",
+        "math_verified"
+      ],
+      "dimensions": {
+        "width": 5.0,
+        "height": 3.0,
+        "depth": 0.2
+      },
+      "slots": [
+        {
+          "id": "main_opening",
+          "type": "window_opening",
+          "pos": [
+            3.0,
+            0,
+            1.2
+          ],
+          "size": [
+            1.0,
+            1.2
+          ]
+        }
+      ],
+      "blend_file": "_library/MathWall_S123.blend",
+      "seed": 123
+    },
+    "MathWall_S456": {
+      "name": "MathWall_S456",
+      "tags": [
+        "arch_wall",
+        "math_verified"
+      ],
+      "dimensions": {
+        "width": 5.0,
+        "height": 3.0,
+        "depth": 0.2
+      },
+      "slots": [
+        {
+          "id": "main_opening",
+          "type": "window_opening",
+          "pos": [
+            3.25,
+            0,
+            1.2
+          ],
+          "size": [
+            1.0,
+            1.2
+          ]
+        }
+      ],
+      "blend_file": "_library/MathWall_S456.blend",
+      "seed": 456
     }
   }
 }
